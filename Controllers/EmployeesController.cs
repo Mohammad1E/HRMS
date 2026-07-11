@@ -125,7 +125,7 @@ namespace HRMS.Controllers
         }
 
 
-        [HttpDelete("")]
+        [HttpDelete("{id:long}")]
         public IActionResult Delete(long id)
         {
             var employee = employees.FirstOrDefault(x =>x.Id == id);
