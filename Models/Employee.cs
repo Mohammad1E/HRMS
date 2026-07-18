@@ -8,9 +8,9 @@
 
         public string LastName { get; set; }
 
-        public string Email { get; set; } //optional / Nullable
+        public string? Email { get; set; } //optional / Nullable
 
-        public string? Position { get; set; }
+        public string Position { get; set; }
 
         public DateTime BirthDate { get; set; }
 
@@ -23,6 +23,9 @@
         public DateTime? EndDate { get; set; } //Nullable
 
         public decimal? Salary { get; set; } //Nullable
+
+        public long? DepartmentId { get; set; } //Foreign Key
+        public long? ManagerId { get; set; } //Foreign Key
 
     }
 }

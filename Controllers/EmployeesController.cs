@@ -2,14 +2,24 @@
 using Microsoft.AspNetCore.Mvc;
 using HRMS.Dtos.Employees;
 using HRMS.Models;
+using HRMS.DbContexts;
+
 namespace HRMS.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeesController : ControllerBase
     {
+        //dependency injection of dbcontext
+        private readonly HRMSContext _dbContext;
 
-        public EmployeesController() { }
+        public EmployeesController(HRMSContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
+
+       
+
 
         public static List<Employee> employees = new List<Employee>()
         {
@@ -25,7 +35,9 @@ namespace HRMS.Controllers
         [HttpGet("Criteria")]
         public IActionResult GetByCriteria([FromQuery] SearchEmployeeDto searchEmployeeDto)
         {
-            var data = from emp in employees
+            var data = from emp in _dbContext.Employees
+                       from dep in _dbContext.Departments.Where(d => d.Id == emp.DepartmentId).DefaultIfEmpty()
+                       from manager in _dbContext.Employees.Where(m => m.Id == emp.ManagerId).DefaultIfEmpty()
                        where (searchEmployeeDto.Position == null || emp.Position.ToUpper().Contains(searchEmployeeDto.Position.ToUpper())) &&
                              (searchEmployeeDto.Name == null || emp.FirstName.ToUpper().Contains(searchEmployeeDto.Name.ToUpper()))
                        orderby emp.Id descending
@@ -36,7 +48,17 @@ namespace HRMS.Controllers
                            Position = emp.Position,
                            BirthDate = emp.BirthDate,
                            StartDate = emp.StartDate,
-                           EndDate = emp.EndDate
+                           EndDate = emp.EndDate,
+                           Email= emp.Email,
+                           PhoneNumber= emp.PhoneNumber,
+                           IsActive= emp.IsActive,
+                           Salary= emp.Salary,
+                           DepartmentId = emp.DepartmentId,
+                           DepartmentName = dep.Name,
+                           ManagerId = emp.ManagerId,
+                           ManagerName = manager.FirstName + " " + manager.LastName
+
+
                        };
 
             return Ok(data);
