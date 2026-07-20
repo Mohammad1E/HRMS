@@ -61,7 +61,7 @@ namespace HRMS.Controllers
 
                        };
 
-            return Ok(data);
+            return Ok(data.ToList());
             //return BadRequest("data not loaded");//400 bad request
             //return NotFound("Employee not found");//404 Not Found
             //return StatusCode(500, "Something Went Wrong");//500 internal error
@@ -71,8 +71,23 @@ namespace HRMS.Controllers
         public IActionResult GetById(long id)
         {
 
-
-            var data = employees.FirstOrDefault(x => x.Id == id);
+            var data=_dbContext.Employees.Select(x => new EmployeeDto
+            {
+                Id = x.Id,
+                Name = x.FirstName + " " + x.LastName,
+                Position = x.Position,
+                BirthDate = x.BirthDate,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                Email = x.Email,
+                PhoneNumber = x.PhoneNumber,
+                IsActive = x.IsActive,
+                Salary = x.Salary,
+                DepartmentId = x.DepartmentId,
+                DepartmentName = _dbContext.Departments.FirstOrDefault(d => d.Id == x.DepartmentId).Name,
+                ManagerId = x.ManagerId,
+                ManagerName = _dbContext.Employees.FirstOrDefault(m => m.Id == x.ManagerId).FirstName + " " + _dbContext.Employees.FirstOrDefault(m => m.Id == x.ManagerId).LastName
+            }).FirstOrDefault(x => x.Id == id);
 
             if (data == null)
             {
@@ -87,7 +102,7 @@ namespace HRMS.Controllers
         {
             var employee = new Employee()
             {
-                Id = (employees.LastOrDefault()?.Id ?? 0) + 1,
+                Id = 0,//(employees.LastOrDefault()?.Id ?? 0) + 1,
                 FirstName = employeeDto.FirstName,
                 LastName = employeeDto.LastName,
                 Position = employeeDto.Position,
@@ -98,6 +113,8 @@ namespace HRMS.Controllers
                 IsActive = employeeDto.IsActive,
                 PhoneNumber = employeeDto.PhoneNumber,
                 Salary = employeeDto.Salary,
+                DepartmentId = employeeDto.DepartmentId,
+                ManagerId = employeeDto.ManagerId
 
 
 
@@ -106,7 +123,8 @@ namespace HRMS.Controllers
             };
 
 
-            employees.Add(employee);
+            _dbContext.Employees.Add(employee);
+            _dbContext.SaveChanges();
             return Ok(employee.Id);
 
         }
@@ -120,7 +138,7 @@ namespace HRMS.Controllers
                 return BadRequest("id mismatch");//400
             }
 
-            var employee = employees.FirstOrDefault(x => x.Id == employeeDto.Id);
+            var employee = _dbContext.Employees.FirstOrDefault(x => x.Id == employeeDto.Id);
 
             if (employee == null)
             {
@@ -140,6 +158,11 @@ namespace HRMS.Controllers
             employee.IsActive = employeeDto.IsActive;
             employee.PhoneNumber = employeeDto.PhoneNumber;
             employee.Salary = employeeDto.Salary;
+            employee.DepartmentId = employeeDto.DepartmentId;
+            employee.ManagerId = employeeDto.ManagerId;
+
+            _dbContext.SaveChanges();
+
 
             return Ok();
 
@@ -150,13 +173,14 @@ namespace HRMS.Controllers
         [HttpDelete("{id:long}")]
         public IActionResult Delete(long id)
         {
-            var employee = employees.FirstOrDefault(x =>x.Id == id);
+            var employee = _dbContext.Employees.FirstOrDefault(x =>x.Id == id);
             if(employee == null)
             {
                 return NotFound("Employee Does Not Exist");
             }
 
-            employees.Remove(employee);
+            _dbContext.Employees.Remove(employee);
+            _dbContext.SaveChanges();
             return Ok();
         }
 

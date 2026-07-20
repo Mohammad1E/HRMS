@@ -23,5 +23,9 @@
         public DateTime? EndDate { get; set; } // Nullable
 
         public decimal? Salary { get; set; }
+
+        public long ? DepartmentId { get; set; }
+        public long ? ManagerId { get; set; }
+
     }
 }
