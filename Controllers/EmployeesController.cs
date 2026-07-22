@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using HRMS.Dtos.Employees;
 using HRMS.Models;
 using HRMS.DbContexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Controllers
 {
@@ -71,7 +72,7 @@ namespace HRMS.Controllers
         public IActionResult GetById(long id)
         {
 
-            var data=_dbContext.Employees.Select(x => new EmployeeDto
+            var data = _dbContext.Employees.Select(x => new EmployeeDto
             {
                 Id = x.Id,
                 Name = x.FirstName + " " + x.LastName,
@@ -84,10 +85,18 @@ namespace HRMS.Controllers
                 IsActive = x.IsActive,
                 Salary = x.Salary,
                 DepartmentId = x.DepartmentId,
-                DepartmentName = _dbContext.Departments.FirstOrDefault(d => d.Id == x.DepartmentId).Name,
+                DepartmentName = x.Department.Name,
                 ManagerId = x.ManagerId,
-                ManagerName = _dbContext.Employees.FirstOrDefault(m => m.Id == x.ManagerId).FirstName + " " + _dbContext.Employees.FirstOrDefault(m => m.Id == x.ManagerId).LastName
+                ManagerName = x.Manager != null ? x.Manager.FirstName + " " + x.Manager.LastName : null
             }).FirstOrDefault(x => x.Id == id);
+
+
+            //var data= _dbContext.Employees.Include(x=>x.Department).Include(x=>x.Manager).FirstOrDefault(x => x.Id == id);
+
+            //eager loading: Include(x=>x.Department).Include(x=>x.Manager)
+            //lazy loading: virtual navigation properties in the model class
+            //projection: Select(x=> new EmployeeDto{...})
+
 
             if (data == null)
             {

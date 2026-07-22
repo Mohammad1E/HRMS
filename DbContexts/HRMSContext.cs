@@ -15,6 +15,7 @@ namespace HRMS.DbContexts
         //table == DBset
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Department> Departments { get; set; }
-       
+        public DbSet<Lookup> Lookups { get; set; }
+
     }
 }
