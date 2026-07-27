@@ -4,6 +4,7 @@ using HRMS.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HRMS.Migrations
 {
     [DbContext(typeof(HRMSContext))]
-    partial class HRMSContextModelSnapshot : ModelSnapshot
+    [Migration("20260725080055_lookup_relation_fix")]
+    partial class lookup_relation_fix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -193,39 +196,6 @@ namespace HRMS.Migrations
                             MajorCode = 1,
                             MinorCode = 3,
                             Name = "Technical"
-                        });
-                });
-
-            modelBuilder.Entity("HRMS.Models.User", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("HashedPassword")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsAdmin")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1L,
-                            HashedPassword = "$2a$11$GVebhrpLBqBxbpDOLE7bMOl4j2jJE5m8Txhtv16ITk0gBDC.X5xF2",
-                            IsAdmin = true,
-                            Username = "Admin"
                         });
                 });
 

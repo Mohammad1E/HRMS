@@ -3,10 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using HRMS.Dtos.Employees;
 using HRMS.Models;
 using HRMS.DbContexts;
+
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HRMS.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeesController : ControllerBase
@@ -33,20 +36,22 @@ namespace HRMS.Controllers
 
 
 
-        [HttpGet("Criteria")]
+        [HttpGet()]
         public IActionResult GetByCriteria([FromQuery] SearchEmployeeDto searchEmployeeDto)
         {
             var data = from emp in _dbContext.Employees
                        from dep in _dbContext.Departments.Where(d => d.Id == emp.DepartmentId).DefaultIfEmpty()
                        from manager in _dbContext.Employees.Where(m => m.Id == emp.ManagerId).DefaultIfEmpty()
-                       where (searchEmployeeDto.Position == null || emp.Position.ToUpper().Contains(searchEmployeeDto.Position.ToUpper())) &&
+                       from position in _dbContext.Lookups.Where(p => p.Id == emp.PositionId).DefaultIfEmpty()
+                       where (searchEmployeeDto.PositionId == null || emp.PositionId == searchEmployeeDto.PositionId) &&
                              (searchEmployeeDto.Name == null || emp.FirstName.ToUpper().Contains(searchEmployeeDto.Name.ToUpper()))
                        orderby emp.Id descending
                        select new EmployeeDto
                        {
                            Id = emp.Id,
                            Name = emp.FirstName + " " + emp.LastName,
-                           Position = emp.Position,
+                           PositionId = emp.PositionId,
+                           PositionName = position.Name,
                            BirthDate = emp.BirthDate,
                            StartDate = emp.StartDate,
                            EndDate = emp.EndDate,
@@ -76,7 +81,8 @@ namespace HRMS.Controllers
             {
                 Id = x.Id,
                 Name = x.FirstName + " " + x.LastName,
-                Position = x.Position,
+                PositionId = x.PositionId,
+                PositionName = x.Lookup.Name,
                 BirthDate = x.BirthDate,
                 StartDate = x.StartDate,
                 EndDate = x.EndDate,
@@ -109,72 +115,95 @@ namespace HRMS.Controllers
         [HttpPost("Add")]
         public IActionResult Add(SaveEmployeeDto employeeDto)
         {
-            var employee = new Employee()
+            try
             {
-                Id = 0,//(employees.LastOrDefault()?.Id ?? 0) + 1,
-                FirstName = employeeDto.FirstName,
-                LastName = employeeDto.LastName,
-                Position = employeeDto.Position,
-                BirthDate = employeeDto.BirthDate,
-                StartDate = employeeDto.StartDate,
-                EndDate = employeeDto.EndDate,
-                Email = employeeDto.Email,
-                IsActive = employeeDto.IsActive,
-                PhoneNumber = employeeDto.PhoneNumber,
-                Salary = employeeDto.Salary,
-                DepartmentId = employeeDto.DepartmentId,
-                ManagerId = employeeDto.ManagerId
+
+                var employee = new Employee()
+                {
+                    Id = 0,//(employees.LastOrDefault()?.Id ?? 0) + 1,
+                    FirstName = employeeDto.FirstName,
+                    LastName = employeeDto.LastName,
+                    PositionId = employeeDto.PositionId,
+                    BirthDate = employeeDto.BirthDate,
+                    StartDate = employeeDto.StartDate,
+                    EndDate = employeeDto.EndDate,
+                    Email = employeeDto.Email,
+                    IsActive = employeeDto.IsActive,
+                    PhoneNumber = employeeDto.PhoneNumber,
+                    Salary = employeeDto.Salary,
+                    DepartmentId = employeeDto.DepartmentId,
+                    ManagerId = employeeDto.ManagerId
 
 
 
 
 
-            };
+                };
 
 
-            _dbContext.Employees.Add(employee);
-            _dbContext.SaveChanges();
-            return Ok(employee.Id);
+                _dbContext.Employees.Add(employee);
+                _dbContext.SaveChanges();
+                return Ok(employee.Id);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, new Exception(ex.Message));
+            }
+
+
 
         }
 
         [HttpPut("{id:long}")]
         public IActionResult Update(long id, SaveEmployeeDto employeeDto)
         {
-
-            if(id != employeeDto.Id)
+            try
             {
-                return BadRequest("id mismatch");//400
+                if (id != employeeDto.Id)
+                {
+                    return BadRequest("id mismatch");//400
+                }
+
+                var employee = _dbContext.Employees.FirstOrDefault(x => x.Id == employeeDto.Id);
+
+                if (employee == null)
+                {
+                    return NotFound("Employee Does Not Exist");
+                }
+
+
+
+
+                employee.FirstName = employeeDto.FirstName;
+                employee.LastName = employeeDto.LastName;
+                employee.PositionId = employeeDto.PositionId;
+                employee.BirthDate = employeeDto.BirthDate;
+                employee.StartDate = employeeDto.StartDate;
+                employee.EndDate = employeeDto.EndDate;
+                employee.Email = employeeDto.Email;
+                employee.IsActive = employeeDto.IsActive;
+                employee.PhoneNumber = employeeDto.PhoneNumber;
+                employee.Salary = employeeDto.Salary;
+                employee.DepartmentId = employeeDto.DepartmentId;
+                employee.ManagerId = employeeDto.ManagerId;
+
+                _dbContext.SaveChanges();
+
+
+                return Ok();
+
             }
-
-            var employee = _dbContext.Employees.FirstOrDefault(x => x.Id == employeeDto.Id);
-
-            if (employee == null)
+            catch (NullReferenceException)
             {
                 return NotFound("Employee Does Not Exist");
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Something Went Wrong: " + new Exception(ex.Message));
+            }
 
 
-
-
-            employee.FirstName = employeeDto.FirstName;
-            employee.LastName = employeeDto.LastName;
-            employee.Position = employeeDto.Position;
-            employee.BirthDate = employeeDto.BirthDate;
-            employee.StartDate = employeeDto.StartDate;
-            employee.EndDate = employeeDto.EndDate;
-            employee.Email = employeeDto.Email;
-            employee.IsActive = employeeDto.IsActive;
-            employee.PhoneNumber = employeeDto.PhoneNumber;
-            employee.Salary = employeeDto.Salary;
-            employee.DepartmentId = employeeDto.DepartmentId;
-            employee.ManagerId = employeeDto.ManagerId;
-
-            _dbContext.SaveChanges();
-
-
-            return Ok();
-
+           
 
         }
 
@@ -182,15 +211,24 @@ namespace HRMS.Controllers
         [HttpDelete("{id:long}")]
         public IActionResult Delete(long id)
         {
-            var employee = _dbContext.Employees.FirstOrDefault(x =>x.Id == id);
-            if(employee == null)
-            {
-                return NotFound("Employee Does Not Exist");
-            }
 
-            _dbContext.Employees.Remove(employee);
-            _dbContext.SaveChanges();
-            return Ok();
+            try
+            {
+                var employee = _dbContext.Employees.FirstOrDefault(x => x.Id == id);
+                if (employee == null)
+                {
+                    return NotFound("Employee Does Not Exist");
+                }
+
+                _dbContext.Employees.Remove(employee);
+                _dbContext.SaveChanges();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new Exception(ex.Message));
+            }
+            
         }
 
 

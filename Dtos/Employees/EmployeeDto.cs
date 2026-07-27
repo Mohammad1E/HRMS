@@ -6,7 +6,8 @@
 
         public string Name { get; set; }
 
-        public string Position { get; set; }
+        public long? PositionId { get; set; }
+        public string? PositionName { get; set; } //optional / Nullable
 
         public DateTime? BirthDate { get; set; }
 

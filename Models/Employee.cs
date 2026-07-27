@@ -40,5 +40,11 @@ namespace HRMS.Models
         public long? ManagerId { get; set; } //Foreign Key
         public Employee? Manager { get; set; } //Navigation Property
 
+        
+
+        [ForeignKey("Lookup")]
+        public long? PositionId { get; set; }
+        public Lookup? Lookup { get; set; } //Navigation Property for Position Lookup
+
     }
 }

@@ -24,6 +24,8 @@
 
         public decimal? Salary { get; set; }
 
+        public long? PositionId { get; set; }
+        public string? PositionName { get; set; } //optional / Nullable
         public long ? DepartmentId { get; set; }
         public long ? ManagerId { get; set; }
 
