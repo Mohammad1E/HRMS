@@ -6,6 +6,7 @@ using HRMS.DbContexts;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace HRMS.Controllers
 {
@@ -27,10 +28,10 @@ namespace HRMS.Controllers
 
         public static List<Employee> employees = new List<Employee>()
         {
-            new Employee(){ Id = 1, FirstName = "Ahmad", LastName="Nasser", Email = "Ahmad@123.com", Position="Developer", BirthDate = new DateTime(1995,1,25), PhoneNumber="+9625588625", IsActive = true, StartDate = new DateTime(2026, 5, 10), Salary = 1000},
-            new Employee(){ Id = 2, FirstName = "Layla", LastName = "Kareem", Email = "Layla@123.com", Position = "HR", BirthDate = new DateTime(2000,1,25), PhoneNumber = "+9625588625", IsActive = true, StartDate = new DateTime(2026, 1, 1), Salary = 1000},
-            new Employee(){ Id = 3, FirstName = "Yousef", LastName = "Faris", Email = "Yousef@123.com", Position = "Manager", BirthDate = new DateTime(1996,1,25), PhoneNumber = "+9625588625", IsActive = true, StartDate = new DateTime(2026, 1, 1), Salary = 1200},
-            new Employee(){ Id = 4, FirstName = "Nadia", LastName = "Zaid", Email = "Nadia@123.com", Position = "Developer", BirthDate = new DateTime(1999,1,25), PhoneNumber = "+9625588625", IsActive = true, StartDate = new DateTime(2026, 1, 1), Salary = 800}
+            new Employee(){ Id = 1, FirstName = "Ahmad", LastName="Nasser", Email = "Ahmad@123.com", PositionId = 1, BirthDate = new DateTime(1995,1,25), PhoneNumber="+9625588625", IsActive = true, StartDate = new DateTime(2026, 5, 10), Salary = 1000},
+            new Employee(){ Id = 2, FirstName = "Layla", LastName = "Kareem", Email = "Layla@123.com", PositionId = 2, BirthDate = new DateTime(2000,1,25), PhoneNumber = "+9625588625", IsActive = true, StartDate = new DateTime(2026, 1, 1), Salary = 1000},
+            new Employee(){ Id = 3, FirstName = "Yousef", LastName = "Faris", Email = "Yousef@123.com", PositionId = 3, BirthDate = new DateTime(1996,1,25), PhoneNumber = "+9625588625", IsActive = true, StartDate = new DateTime(2026, 1, 1), Salary = 1200},
+            new Employee(){ Id = 4, FirstName = "Nadia", LastName = "Zaid", Email = "Nadia@123.com", PositionId = 1, BirthDate = new DateTime(1999,1,25), PhoneNumber = "+9625588625", IsActive = true, StartDate = new DateTime(2026, 1, 1), Salary = 800}
 
         };
 
@@ -39,6 +40,12 @@ namespace HRMS.Controllers
         [HttpGet()]
         public IActionResult GetByCriteria([FromQuery] SearchEmployeeDto searchEmployeeDto)
         {
+
+            //extract from token: role,userid
+            var role=User.FindFirst(ClaimTypes.Role)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+
             var data = from emp in _dbContext.Employees
                        from dep in _dbContext.Departments.Where(d => d.Id == emp.DepartmentId).DefaultIfEmpty()
                        from manager in _dbContext.Employees.Where(m => m.Id == emp.ManagerId).DefaultIfEmpty()
@@ -62,10 +69,17 @@ namespace HRMS.Controllers
                            DepartmentId = emp.DepartmentId,
                            DepartmentName = dep.Name,
                            ManagerId = emp.ManagerId,
-                           ManagerName = manager.FirstName + " " + manager.LastName
-
+                           ManagerName = manager.FirstName + " " + manager.LastName,
+                           UserId= emp.UserId
 
                        };
+
+            if(role.ToUpper() != "Admin" && role.ToUpper() != "HR")
+            {
+                data = data.Where(x => x.UserId == long.Parse(userId));
+            }
+
+
 
             return Ok(data.ToList());
             //return BadRequest("data not loaded");//400 bad request
@@ -76,6 +90,9 @@ namespace HRMS.Controllers
         [HttpGet("{id:long}")]//Route parameter
         public IActionResult GetById(long id)
         {
+
+
+
 
             var data = _dbContext.Employees.Select(x => new EmployeeDto
             {
@@ -118,6 +135,24 @@ namespace HRMS.Controllers
             try
             {
 
+                var user = new User()
+                {
+                    Id = 0,//(employees.LastOrDefault()?.Id ?? 0) + 1,
+                    Username = $"{employeeDto.FirstName}.{employeeDto.LastName}_HRMS",
+                    
+                    HashedPassword = BCrypt.Net.BCrypt.HashPassword($"{employeeDto.FirstName}@123"),
+                    IsAdmin=false
+                };
+                var existUser = _dbContext.Users.FirstOrDefault(x => x.Username.ToUpper() == user.Username.ToUpper());
+                if (existUser != null)
+                {
+                    return BadRequest("User with this username already exists");
+                }
+                _dbContext.Users.Add(user);
+               // _dbContext.SaveChanges();
+
+
+
                 var employee = new Employee()
                 {
                     Id = 0,//(employees.LastOrDefault()?.Id ?? 0) + 1,
@@ -132,7 +167,8 @@ namespace HRMS.Controllers
                     PhoneNumber = employeeDto.PhoneNumber,
                     Salary = employeeDto.Salary,
                     DepartmentId = employeeDto.DepartmentId,
-                    ManagerId = employeeDto.ManagerId
+                    ManagerId = employeeDto.ManagerId,
+                    User = user
 
 
 
@@ -142,7 +178,20 @@ namespace HRMS.Controllers
 
 
                 _dbContext.Employees.Add(employee);
-                _dbContext.SaveChanges();
+
+
+                //_dbContext.SaveChanges();
+                try
+                {
+                    _dbContext.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.InnerException?.Message ?? ex.Message);
+                }
+
+
+
                 return Ok(employee.Id);
             }
             catch(Exception ex)
@@ -186,6 +235,7 @@ namespace HRMS.Controllers
                 employee.Salary = employeeDto.Salary;
                 employee.DepartmentId = employeeDto.DepartmentId;
                 employee.ManagerId = employeeDto.ManagerId;
+              
 
                 _dbContext.SaveChanges();
 
@@ -207,7 +257,7 @@ namespace HRMS.Controllers
 
         }
 
-
+        [Authorize(Roles = "HR,Admin")]
         [HttpDelete("{id:long}")]
         public IActionResult Delete(long id)
         {

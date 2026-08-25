@@ -16,8 +16,8 @@ namespace HRMS.Models
         [MaxLength(50)]
         public string? Email { get; set; } //optional / Nullable
 
-        [MaxLength(50)]
-        public string Position { get; set; }
+        
+       
 
         public DateTime BirthDate { get; set; }
 
@@ -46,5 +46,8 @@ namespace HRMS.Models
         public long? PositionId { get; set; }
         public Lookup? Lookup { get; set; } //Navigation Property for Position Lookup
 
+        [ForeignKey("User")]
+        public long? UserId { get; set; }
+        public User? User { get; set; }
     }
 }

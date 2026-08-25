@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.EntityFrameworkCore;
 
 
 
@@ -60,7 +61,11 @@ namespace HRMS.Controllers
             }
             else
             {
-                claims.Add(new Claim(ClaimTypes.Role, "User"));
+
+
+                var employee = _dbContext.Employees.Include(x => x.Lookup).FirstOrDefault(x => x.UserId == user.Id);
+                claims.Add(new Claim(ClaimTypes.Role, employee.Lookup.Name));
+
             }
 
             //secret key + signing token 

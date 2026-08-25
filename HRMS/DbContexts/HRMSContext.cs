@@ -48,8 +48,18 @@ namespace HRMS.DbContexts
             );
 
 
+
+
+
+            modelBuilder.Entity<Employee>().HasIndex(e => e.UserId).IsUnique();
+            modelBuilder.Entity<User>().HasIndex(e => e.Username).IsUnique();
+
         }
 
+
+
+
+       
 
 
 

@@ -25,6 +25,8 @@
         public long? DepartmentId { get; set; } //Foreign Key
         public string? DepartmentName { get; set; } //Foreign Key
 
+        public long? UserId { get; set; } //Foreign Key
+
 
     }
 }
