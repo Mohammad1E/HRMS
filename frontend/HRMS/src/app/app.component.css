@@ -1,0 +1,15 @@
+    .students_1{
+        font-size: 30px;
+        font-weight: bolder;
+      }
+
+    .passed{
+        color:green;
+
+      }
+
+      .failed{
+        color: red;
+      }
+    
+    
