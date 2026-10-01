@@ -1,5 +1,133 @@
 
-<div class="for1">
+<!-- Global Attributes : Class -->
+<!-- Custom Attributes : charset -->
+
+<!-- inline styling -->
+<div class="header" style>
+
+  <h2>
+    Select And Submit To Join One Of Our Courses
+  </h2>
+
+  <div class="content">
+    <div class="account">
+      <span class="email account-value">q.Irshaid@gmail.com</span>
+      <span class="switch-account account-value">
+        <a href="https://www.google.com/account/about/?hl=en-US"
+          target="_blank">
+          Switch Account
+        </a>
+      </span>
+      <span class="icon account-value">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+      </span>
+    </div>
+
+    <p class="description">
+      The name, email address and photo associated with your
+      Google Account will be recorded when you upload files and
+      submit this form
+    </p>
+
+    <p class="warning">
+      * Indecates required question
+    </p>
+  </div>
+
+</div>
+
+<form [formGroup]="form">
+  <div class="question">
+    <div class="title">
+      <label for="email">
+        Email
+        <span class="required-icon">*</span>
+      </label>
+    </div>
+    <div class="input-field">
+      <input id="email" type="email" formControlName="email"
+        [class.red-border]="form.get('email')?.invalid && form.get('email')?.touched"
+        placeholder="Your email address">
+    </div>
+  </div>
+
+  <div class="question">
+    <div class="title">
+      <label for="name">
+        Name
+        <span class="required-icon">*</span>
+      </label>
+    </div>
+    <div class="input-field">
+      <input id="name" type="text" formControlName="name"
+        placeholder="Your full name">
+    </div>
+  </div>
+  <div class="question">
+    <div class="title">
+      <label for="phone">
+        Phone Number
+        <span class="required-icon">*</span>
+      </label>
+    </div>
+    <div class="input-field">
+      <input id="phone" type="text" formControlName="phone"
+        placeholder="Your phone number">
+    </div>
+  </div>
+  <div class="question">
+    <div class="title">
+      <label for="age">
+        Age
+        <!-- <span class="required-icon">*</span> -->
+      </label>
+    </div>
+    <div class="input-field">
+      <input id="age" type="number" formControlName="age"
+        placeholder="Your age">
+    </div>
+  </div>
+  <div class="question">
+    <div class="title">
+      <label for="course">
+        Course
+        <span class="required-icon">*</span>
+      </label>
+    </div>
+    <div class="input-field">
+      <!-- <input id="age" type="number" placeholder="Your age"> -->
+      <select id="course" formControlName="courseId">
+        @for(course of courses; track course.id; let i = $index){
+        <option [value]="course.id">{{course.name}}</option>
+        }
+      </select>
+    </div>
+  </div>
+  <div class="actions">
+    <button type="button"
+      class="action-btn submit-btn" [disabled]="!form.valid"
+      (click)="submitForm()">Submit</button>
+    <button type="button" class="action-btn reset-btn"
+      (click)="form.reset()">Clear
+      Form</button>
+  </div>
+</form>
+<!-- pipe -->
+<p class="title">
+  {{'Employee' | uppercase}} List
+</p>
+
+<div class="footer">
+  <p class="copy-right">
+    This form was created inside Princess Sumaya University for
+    Technology. Does this form look suspicious? <a href>report</a>
+  </p>
+  <p class="logo">
+    Google Forms
+  </p>
+</div>
+
+<!-- <div class="for1">
   <span *ngFor="let stu of students; index as i" class="students_1">
 
     {{i+1}}. student name is: {{stu.name}}, mark: {{stu.mark}},status:
@@ -7,17 +135,68 @@
       class="failed">Failed</span>} <br>
 
   </span>
-</div>
+</div> -->
 <!-- structural Directives: ngIf, ngFor, ngSwicth -->
 <!-- attribute Directives ngClass, ngStyle, ngModel -->
-<br><br>
+<!-- custom Directives -->
+<!-- <br><br> -->
 <!-- Another way -->
-<div class="for2">
+<!-- <div class="for2">
   @for(stu of students; track stu.id; let i = $index){
 
   <span class="students_1">
-    {{i+1}}. student name is: {{stu.name}}, mark: {{stu.mark}}<br>
+    {{i+1}}. student name is: <span
+      [ngClass]="{'passed':stu.mark>=50, 'failed':stu.mark<50}">{{stu.name}}</span>,
+    mark: {{stu.mark}}<br>
+
+    {{i+1}}. student name is: <span
+      [class]="stu.mark>=50?'passed':'failed'">{{stu.name}}</span>,
+    mark: {{stu.mark}}<br>
+
   </span>
 
   }
-</div>
+</div> -->
+
+<!-- Data Binding -->
+<!-- output html => ts -->
+<!-- () inside element == event -->
+<!-- <div style="margin:40px;font-size: 25px;">
+  <img width="50%" height="50%" id="image"
+    [src]="images[currentIndex]" alt="random image">
+
+  <br>
+  <button type="button" id="previous" (click)="previous()"
+    [disabled]="currentIndex==0">Previous</button>
+  <button type="button" id="next" (click)="next()"
+    [disabled]="currentIndex == images.length - 1">Next</button> -->
+
+<!-- <span [style]="out?'display:none':'display:inline; color:red'">Out of
+    Range</span> -->
+
+<!-- </div> -->
+
+<!-- Two way data binding -->
+<!-- [(ngModel)] -->
+<!-- Form Control -->
+
+<!-- <div style="margin:40px;">
+  <input type="text" [(ngModel)]="name">
+  <br><br>
+  <span>Hello {{name}}</span>
+
+</div> -->
+
+<!-- <div style="margin:40px;">
+  <form [formGroup]="form">
+    <input type="text" formControlName="name" placeholder="Enter your name">
+    <br><br>
+    <input type="email" formControlName="email" placeholder="Enter your email">
+    <br><br>
+    <input type="password" formControlName="password"
+      placeholder="Enter your password">
+    <br><br>
+    <button type="submit">Submit</button>
+  </form>
+
+</div> -->
